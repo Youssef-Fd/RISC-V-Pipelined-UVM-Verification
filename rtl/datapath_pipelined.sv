@@ -2,19 +2,20 @@ module datapath_pipelined(
     input  logic        clk,
     input  logic        rst_n,
 
-    output logic        debug_valid,       // an instruction commits in WB
-    output logic [31:0] debug_pc,          // PC of that instruction
-    output logic [4:0]  debug_rd,
-    output logic        debug_we,          // it writes a register
-    output logic [31:0] debug_out,         // wb_data
-    output logic        debug_mem_we,      // store in MEM stage
-    output logic [31:0] debug_mem_addr,
-    output logic [31:0] debug_mem_wdata,
-    // hazard coverage
+    output logic [31:0] debug_instr,
+    output logic [31:0] debug_PC,    // PC of that instruction
+
+    output logic [31:0] debug_Write_Data_Mem,
+    output logic [31:0] debug_Data_Adr_Mem,
+    output logic [31:0] debug_Read_Data_Mem,
+    output logic        debug_mem_write,
+    output logic [31:0] debug_out,
+    
+    // Gebuging Hazard Types
     output logic        debug_stall,
-    output logic        debug_redirect,
     output logic [1:0]  debug_fwd_a,
-    output logic [1:0]  debug_fwd_b 
+    output logic [1:0]  debug_fwd_b,
+    output logic        debug_redirect
 );
 
     import riscv_opcodes_pkg::*;
@@ -328,17 +329,19 @@ module datapath_pipelined(
         endcase
     end
 
-    assign debug_valid     = mem_wb.valid;
-    assign debug_pc        = mem_wb.pc_plus_4 - 32'd4;
-    assign debug_rd        = mem_wb.rd_addr;
-    assign debug_we        = mem_wb.valid & mem_wb.reg_write;
-    assign debug_out       = wb_data;
-    assign debug_mem_we    = ex_mem.valid & ex_mem.mem_write;
-    assign debug_mem_addr  = ex_mem.alu_result;
-    assign debug_mem_wdata = ex_mem.rs2_data;
-    assign debug_stall     = stall;
-    assign debug_redirect  = ex_redirect_valid;
-    assign debug_fwd_a     = forward_a;
-    assign debug_fwd_b     = forward_b;
+    assign debug_instr          = if_instruction;
+    assign debug_pc             = mem_wb.pc_plus_4 - 32'd4;
+
+    assign debug_Data_Adr_Mem   = ex_mem.alu_result;
+    assign debug_Write_Data_Mem = ex_mem.rs2_data;
+    assign debug_mem_write      = ex_mem.valid & ex_mem.mem_write;
+
+    assign debug_Read_Data_Mem  = mem_read_data;
+    assign debug_out            = wb_data;
+
+    assign debug_stall          = stall;
+    assign debug_fwd_a          = forward_a;
+    assign debug_fwd_b          = forward_b;
+    assign debug_redirect       = ex_redirect_valid;
 
 endmodule
