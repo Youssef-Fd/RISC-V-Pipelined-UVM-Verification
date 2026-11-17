@@ -15,7 +15,9 @@ module datapath_pipelined(
     output logic        debug_stall,
     output logic [1:0]  debug_fwd_a,
     output logic [1:0]  debug_fwd_b,
-    output logic        debug_redirect
+    output logic        debug_redirect,
+
+    output logic        debug_valid
 );
 
     import riscv_opcodes_pkg::*;
@@ -343,5 +345,7 @@ module datapath_pipelined(
     assign debug_fwd_a          = forward_a;
     assign debug_fwd_b          = forward_b;
     assign debug_redirect       = ex_redirect_valid;
+
+    assign debug_valid          = mem_wb.valid;
 
 endmodule
